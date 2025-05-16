@@ -28,7 +28,7 @@ wss.on('connection', (ws) => {
             case 'add_user_to_room':
                 console.log('Adding user to room');
                 const room = addUserToRoom(ws, JSON.parse(request.data).indexRoom);
-                createGame(room);
+                if (room) createGame(room);
                 break;
             case 'add_ships':
                 console.log('Adding ships');

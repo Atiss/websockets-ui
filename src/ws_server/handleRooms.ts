@@ -25,6 +25,9 @@ export const addUserToRoom = (ws: WebSocket, indexRoom: number) => {
     const user = findUserByWs(ws);
     const room = findRoomByIndex(indexRoom)
     if (!room) return null;
-    room.roomUsers.push({userData: user, ships: []});
-    return room;
+    if (room.roomUsers.every(roomUser => roomUser.userData.index !== user.index)) {
+        room.roomUsers.push({userData: user, ships: []});
+        return room;
+    }
+    return null;
 }
