@@ -67,6 +67,8 @@ export const setTurn = (data: TurnRequest) => {
     for (const player of game.room.roomUsers) {
         sendMessage(player.userData.ws, MessageTypes.TURN, {currentPlayer: game.activePlayer});
     }
+
+    botAttack(game);
 }
 
 const provideAttack = (ships: Ship[], x: number, y: number) => {
@@ -90,27 +92,28 @@ export const attack = (ws: WebSocket, data: AttackRequest) => {
     const enemy = game.room.roomUsers
         .find(user => user.userData.index !== data.indexPlayer);
     if (!enemy)  return null;
-
+    let result = null;
     const ship: Ship = provideAttack(enemy.ships, data.x, data.y);
     if (!ship) {
-        const result = {status: 'miss', position: {x: data.x, y: data.y}};
+        result = {status: 'miss', position: {x: data.x, y: data.y}};
         sendAttackMessage({...result, currentPlayer: game.activePlayer}, game);
         setTurn({gameId: data.gameId, indexPlayer: game.activePlayer});
     } else if (ship.cells.filter(cell => cell === 0).length > 0) {
-        const result = {status: 'shot', position: {x: data.x, y: data.y}};
+        result = {status: 'shot', position: {x: data.x, y: data.y}};
         sendAttackMessage({...result, currentPlayer: game.activePlayer}, game);
     } else if (ship.cells.filter(cell => cell === 0).length === 0) {
+        result = {status: 'killed', position: {x: data.x, y: data.y}};
         killShip(ship, data.indexPlayer, game);
     }
     if (enemy.ships.filter(ship => ship.status !== 'killed').length === 0) {
         for(const player of game.room.roomUsers) {
-            sendMessage(player.userData.ws, MessageTypes.FINISH, {winner: data.indexPlayer});
+            sendMessage(player.userData.ws, MessageTypes.FINISH, {winPlayer: data.indexPlayer});
         }
         addWinToUser(data.indexPlayer);
         updateWinners();
         return
     }
-    botAttack(game);
+    return result;
 }
 
 const killShip = (ship: Ship, currentPlayer: number, game: Game) => {
@@ -147,5 +150,5 @@ const sendAttackMessage = (data: AttackResponse, game: Game) => {
 export const randomAttack = (ws: WebSocket, data: TurnRequest) => {
     const x = Math.floor(Math.random() * 10);
     const y = Math.floor(Math.random() * 10);
-    attack(ws, {gameId: data.gameId, x, y, indexPlayer: data.indexPlayer});
+    return attack(ws, {gameId: data.gameId, x, y, indexPlayer: data.indexPlayer});
 }
