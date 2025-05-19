@@ -5,6 +5,7 @@ import {createGame, addShips, attack, randomAttack} from "./handleGames.ts";
 import type {ShipsRequest} from "./model/shipsModel.ts";
 import {sendMessage} from "./handleMessages.ts";
 import {MessageTypes} from "./model/messagesModel.ts";
+import {createBot} from "./handleBot.ts";
 
 export const wss = new WebSocketServer({ port: 3000 });
 console.log(`Start ws server on the 3000 port!`);
@@ -45,6 +46,8 @@ wss.on('connection', (ws) => {
                 break;
             case 'single_play':
                 console.log('Single play');
+                const roomWithBot = createRoom(ws);
+                createBot(roomWithBot);
                 break;
             default:
                 console.log('Unknown request type');

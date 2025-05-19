@@ -6,6 +6,7 @@ import {updateWinners} from "./handleUsers.ts";
 import {addWinToUser} from "./db/users.ts";
 import {sendMessage} from "./handleMessages.ts";
 import {MessageTypes} from "./model/messagesModel.ts";
+import {botAttack} from "./handleBot.ts";
 
 export const createGame = (room: RoomData) => {
     const game = addGame(room);
@@ -107,7 +108,9 @@ export const attack = (ws: WebSocket, data: AttackRequest) => {
         }
         addWinToUser(data.indexPlayer);
         updateWinners();
+        return
     }
+    botAttack(game);
 }
 
 const killShip = (ship: Ship, currentPlayer: number, game: Game) => {
@@ -141,7 +144,7 @@ const sendAttackMessage = (data: AttackResponse, game: Game) => {
     }
 }
 
-export const randomAttack = (ws: WebSocket, data: AttackRequest) => {
+export const randomAttack = (ws: WebSocket, data: TurnRequest) => {
     const x = Math.floor(Math.random() * 10);
     const y = Math.floor(Math.random() * 10);
     attack(ws, {gameId: data.gameId, x, y, indexPlayer: data.indexPlayer});
